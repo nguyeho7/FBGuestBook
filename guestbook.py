@@ -82,7 +82,5 @@ def handle_image(data, sender, sticker=False):
     else:
         reply(sender, "Obrazek byl uspesne prijat")
 
-def handle_stickers(data, sender):
-
 if __name__ == '__main__':
     app.run(debug=False)
