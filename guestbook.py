@@ -5,7 +5,7 @@ import time
 from flask import Flask, request
 from escpos.printer import Usb
 from PIL import Image
-import StringIO
+from io import StringIO
 
 app = Flask(__name__)
 product_id = config.product_id
