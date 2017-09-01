@@ -67,7 +67,7 @@ def handle_text(data, sender):
         reply(sender, "Zpráva byla moc dlouhá.")
 
 def handle_image(data, sender, sticker=False):
-    image_url = data['attachements'][0]['payload']['url']
+    image_url = data['attachments'][0]['payload']['url']
     print(image_url)
     response = requests.get(image_url, stream=True)
     image = Image.open(StringIO(response.content))
