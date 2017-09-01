@@ -5,7 +5,7 @@ import time
 from flask import Flask, request
 from escpos.printer import Usb
 from PIL import Image
-from io import StringIO
+from io import BytesIO
 
 app = Flask(__name__)
 product_id = config.product_id
@@ -71,13 +71,12 @@ def handle_image(data, sender, sticker=False):
     image_url = data['attachments'][0]['payload']['url']
     print(image_url)
     response = requests.get(image_url, stream=True)
-    image = Image.open(StringIO(response.content))
+    image = Image.open(BytesIO(response.content))
     image = image.convert('LA').thumbnail(size, Image.ANTIALIAS)
     im_filename = sender + "_image"
     image.save(im_filename, "JPEG")
     print_image(im_filename)
     image.delete()
-    delete
     if sticker:
         reply(sender, "Sticker byl uspesne prijat")
     else:
