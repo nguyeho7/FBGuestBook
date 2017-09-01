@@ -4,13 +4,14 @@ import config
 import time
 from flask import Flask, request
 from escpos.printer import Usb
+from PIL import Image
 
 app = Flask(__name__)
 product_id = config.product_id
 vendor_id = config.vendor_id
 ACCESS_TOKEN = config.ACCESS_TOKEN
 max_len = config.max_len
-
+size = config.size
 
 def print_text(text):
     '''
@@ -47,19 +48,41 @@ def handle_incoming_messages():
         # authenticate
         return request.args['hub.challenge']
     data = request.json
-    try:
-        sender = data['entry'][0]['messaging'][0]['sender']['id']
-        message = data['entry'][0]['messaging'][0]['message']['text']
-    except KeyError:
-        message = 'emoji'
+    sender = data['entry'][0]['messaging'][0]['sender']['id']
+    message = data['entry'][0]['messaging'][0]['message']
+    if "text" in message:
+        handle_text(message, sender)
+    elif "attachments" in message:
+        sticker_flag = "sticker_id" in message['attachments'][0]['payload']
+        handle_image(message, sender, sticker_flag)
+    return "ok"
+
+def handle_text(data, sender):
+    message = data['text']
     print(message)
     if message.count('\n') < max_len:
         print_text(message)
         reply(sender, "Zpráva úspěšně přijata.")
     else:
         reply(sender, "Zpráva byla moc dlouhá.")
-    return "ok"
 
+def handle_image(data, sender, sticker=False):
+    image_url = data['attachements'][0]['payload']['url']:
+    print(image_url)
+    response = requests.get(image_url, stream=True)
+    image = Image.open(StringIO(response.content))
+    image = image.convert('LA').thumbnail(size, Image.ANTIALIAS)
+    im_filename = sender + "_image"
+    image.save(im_filename, "JPEG")
+    print_image(im_filename)
+    image.delete()
+    delete
+    if sticker:
+        reply(sender, "Sticker byl uspesne prijat")
+    else:
+        reply(sender, "Obrazek byl uspesne prijat")
+
+def handle_stickers(data, sender):
 
 if __name__ == '__main__':
     app.run(debug=False)
