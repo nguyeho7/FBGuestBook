@@ -15,12 +15,14 @@ vendor_id = config.vendor_id
 ACCESS_TOKEN = config.ACCESS_TOKEN
 max_len = config.max_len
 size = config.size
+images = set()
+messages = set()
 
 def print_text(text):
     '''
     Prints the given text and cuts it. Returns True on success
     '''
-    p = Usb(product_id, vendor_id)
+    p = Usb(product_id, vendor_id, 2)
     curtime = time.strftime("%H:%M, %d/%m/%Y")
     to_print = curtime + "\n" + text
     p.text(to_print)
@@ -29,7 +31,7 @@ def print_text(text):
 
 def print_image(filename):
     # have to tune the image size
-    p = Usb(product_id, vendor_id) 
+    p = Usb(product_id, vendor_id, 2) 
     p.image(filename)
     p.cut()
 
@@ -62,7 +64,12 @@ def handle_incoming_messages():
     return "ok"
 
 def handle_text(data, sender, normalize=True):
+    global messages
     message = data['text']
+    msg_sndr = message+"_"+sender
+    is sender in messages:
+        return
+    messages.add(msg_sndr)
     if normalize:
         message = unidecode.unidecode(message)
     print(message)
@@ -73,8 +80,14 @@ def handle_text(data, sender, normalize=True):
         reply(sender, "Zpráva byla moc dlouhá.")
 
 def handle_image(data, sender, sticker=False):
+    global images
     image_url = data['attachments'][0]['payload']['url']
     print(image_url)
+    if "video" in image_url:
+        return
+    if image_url in images:
+        return
+    images.add(image_url)
     response = requests.get(image_url, stream=True)
     image = Image.open(BytesIO(response.content))
     image.thumbnail(size, Image.ANTIALIAS)
