@@ -53,7 +53,7 @@ def handle_incoming_messages():
     except KeyError:
         message = 'emoji'
     print(message)
-    if text.count('\n') < max_len:
+    if message.count('\n') < max_len:
         print_text(message)
         reply(sender, "Zpráva úspěšně přijata.")
     else:
