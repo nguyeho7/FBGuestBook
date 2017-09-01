@@ -28,6 +28,7 @@ def print_text(text):
 
 def print_image(filename):
     # have to tune the image size
+    p = Usb(product_id, vendor_id) 
     p.image(filename, center=True)
     p.cut()
 
