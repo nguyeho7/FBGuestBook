@@ -6,6 +6,7 @@ from flask import Flask, request
 from escpos.printer import Usb
 from PIL import Image
 from io import BytesIO
+import unidecode
 import os
 
 app = Flask(__name__)
@@ -19,7 +20,7 @@ def print_text(text):
     '''
     Prints the given text and cuts it. Returns True on success
     '''
-    p = Usb(product_id, vendor_id) 
+    p = Usb(product_id, vendor_id)
     curtime = time.strftime("%H:%M, %d/%m/%Y")
     to_print = curtime + "\n" + text
     p.text(to_print)
@@ -29,7 +30,7 @@ def print_text(text):
 def print_image(filename):
     # have to tune the image size
     p = Usb(product_id, vendor_id) 
-    p.image(filename, center=True)
+    p.image(filename)
     p.cut()
 
 def reply(user_id, msg):
@@ -60,8 +61,10 @@ def handle_incoming_messages():
         handle_image(message, sender, sticker_flag)
     return "ok"
 
-def handle_text(data, sender):
+def handle_text(data, sender, normalize=True):
     message = data['text']
+    if normalize:
+        message = unidecode.unidecode(message)
     print(message)
     if message.count('\n') < max_len:
         print_text(message)
@@ -74,7 +77,6 @@ def handle_image(data, sender, sticker=False):
     print(image_url)
     response = requests.get(image_url, stream=True)
     image = Image.open(BytesIO(response.content))
-    image = image.convert('LA')
     image.thumbnail(size, Image.ANTIALIAS)
     im_filename = sender + "_image.png"
     image.save(im_filename, "png")
